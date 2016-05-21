@@ -1,0 +1,1 @@
+select 'drop table ' || tablename || ';' from pg_tables where tableowner = 'dchess';

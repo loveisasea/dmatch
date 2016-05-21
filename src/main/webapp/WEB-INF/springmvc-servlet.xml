@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- ~ Licensed to the Apache Software Foundation (ASF) under one ~ or more contributor license agreements. See the NOTICE 
+	file ~ distributed with this work for additional information ~ regarding copyright ownership. The ASF licenses this file 
+	~ to you under the Apache License, Version 2.0 (the ~ "License"); you may not use this file except in compliance ~ with the 
+	License. You may obtain a copy of the License at ~ ~ http://www.apache.org/licenses/LICENSE-2.0 ~ ~ Unless required by applicable 
+	law or agreed to in writing, ~ software distributed under the License is distributed on an ~ "AS IS" BASIS, WITHOUT WARRANTIES 
+	OR CONDITIONS OF ANY ~ KIND, either express or implied. See the License for the ~ specific language governing permissions 
+	and limitations ~ under the License. -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="
+        http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-2.5.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-2.5.xsd
+        http://www.springframework.org/schema/mvc
+        http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop-3.1.xsd
+        ">
+
+
+    <!-- Enable annotation component scanning and autowiring of controller package -->
+    <context:annotation-config/>
+    <context:component-scan base-package="com.fym.**"/>
+    <!--<context:component-scan base-package="com.plk.**.dao" />-->
+    <!--<context:component-scan base-package="com.plk.**.aop" />-->
+    <!--<context:component-scan base-package="com.plk.**.controller" />-->
+    <!--<context:component-scan base-package="com.plk.**.web" />-->
+
+    <aop:aspectj-autoproxy proxy-target-class="true"/>
+
+    <!-- Enable annotation-based controllers using @controller annotations -->
+    <bean id="annotationUrlMapping"
+          class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping">
+        <property name="interceptors">
+            <list>
+            </list>
+        </property>
+    </bean>
+    <!-- Required for security annotations to work in this servlet -->
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+    <!-- <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor"/> -->
+
+
+    <bean id="annotationMethodHandlerAdapter"
+          class="org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerAdapter">
+        <property name="messageConverters">
+            <list>
+                <ref local="jsonHttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="jsonHttpMessageConverter"
+          class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
+        <property name="objectMapper">
+            <bean class="com.fym.core.util.jackson.ObjectMapper">
+            </bean>
+        </property>
+    </bean>
+
+
+    <!-- the static files. -->
+    <mvc:default-servlet-handler/>
+
+
+    <bean class="org.springframework.web.servlet.view.ContentNegotiatingViewResolver">
+        <property name="contentNegotiationManager">
+            <bean id="contentNegotiationManager"
+                  class="org.springframework.web.accept.ContentNegotiationManagerFactoryBean">
+                <!-- 是否启用扩展名支持, 例如 /user/{userid}.json -->
+                <property name="favorPathExtension" value="false"/>
+                <!-- 是否启用参数支持, 例如 /user/{userid}?format=json -->
+                <property name="favorParameter" value="false"/>
+                <!-- 是否忽略掉accept header, 例如 GET /user HTTP/1.1 Accept:application/json -->
+                <property name="ignoreAcceptHeader" value="false"/>
+                <!-- 如果所有的mediaType都没匹配上，就会使用defaultContentType. 在没有扩展名, 即"/user/1" 时的默认展现形式 -->
+                <property name="defaultContentType" value="text/html"/>
+                <!-- 扩展名至mimeType的映射,即 /user.json => application/json -->
+                <property name="mediaTypes">
+                    <props>
+                        <prop key="json">application/json</prop>
+                    </props>
+                </property>
+            </bean>
+        </property>
+        <property name="viewResolvers">
+            <list>
+                <bean class="org.springframework.web.servlet.view.BeanNameViewResolver">
+                    <property name="order" value="0"></property>
+                </bean>
+
+                <!-- UrlBasedViewResolver to Handle Redirects & Forward -->
+                <bean class="org.springframework.web.servlet.view.UrlBasedViewResolver">
+                    <property name="viewClass" value="org.springframework.web.servlet.view.InternalResourceView"/>
+                    <property name="order" value="2"></property>
+                </bean>
+
+                <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+                    <property name="viewClass" value="org.springframework.web.servlet.view.JstlView"/>
+                    <property name="prefix" value="/WEB-INF/view/"/>
+                    <property name="suffix" value=".jsp"></property>
+                    <property name="order" value="3"></property>
+                </bean>
+
+            </list>
+        </property>
+        <property name="defaultViews">
+            <list>
+                <bean class="org.springframework.web.servlet.view.json.MappingJackson2JsonView"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="methodHandlerExceptionResolver"
+          class="org.springframework.web.servlet.mvc.method.annotation.ExceptionHandlerExceptionResolver">
+        <property name="messageConverters">
+            <list>
+                <ref bean="jsonHttpMessageConverter"/>
+            </list>
+        </property>
+    </bean>
+
+
+    <!-- ========================================================================================================== -->
+    <!-- ================================= 定时任务配置 ==================================================== -->
+    <!-- ========================================================================================================== -->
+    <!-- 导入shibor -->
+
+    <!--&lt;!&ndash; For times when you just need to invoke a method on a specific object &ndash;&gt;-->
+    <!--<bean id="intervalStartTaskJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
+        <!--<property name="targetObject" ref="taskinsService"/>-->
+        <!--<property name="targetMethod" value="intervalStartTask"/>-->
+    <!--</bean>-->
+    <!--<bean id="intervalStartTaskTrigger" class="org.springframework.scheduling.quartz.SimpleTriggerFactoryBean">-->
+        <!--<property name="jobDetail" ref="intervalStartTaskJob"/>-->
+        <!--<property name="startDelay" value="1000"/>-->
+        <!--<property name="repeatInterval" value="30000"/>-->
+    <!--</bean>-->
+
+    <!--<bean id="backupDBJob" class="org.springframework.scheduling.quartz.MethodInvokingJobDetailFactoryBean">-->
+        <!--<property name="targetObject" ref="DBCom"/>-->
+        <!--<property name="targetMethod" value="backup"/>-->
+    <!--</bean>-->
+    <!--<bean id="backupDBTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">-->
+        <!--<property name="jobDetail" ref="backupDBJob"/>-->
+        <!--<property name="cronExpression">-->
+            <!--&lt;!&ndash;每天的凌晨三点整备份&ndash;&gt;-->
+            <!--<value>0 * * * * ?</value>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+
+
+
+    <!--&lt;!&ndash; Scheduler factory bean to glue together jobDetails and triggers to Configure Quartz Scheduler &ndash;&gt;-->
+    <!--<bean class="org.springframework.scheduling.quartz.SchedulerFactoryBean">-->
+        <!--<property name="jobDetails">-->
+            <!--<list>-->
+                <!--<ref bean="intervalStartTaskJob"/>-->
+                <!--<ref bean="backupDBJob"/>-->
+            <!--</list>-->
+        <!--</property>-->
+
+        <!--<property name="triggers">-->
+            <!--<list>-->
+                <!--<ref bean="intervalStartTaskTrigger"/>-->
+                <!--<ref bean="backupDBTrigger"/>-->
+            <!--</list>-->
+        <!--</property>-->
+    <!--</bean>-->
+
+</beans>

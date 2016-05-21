@@ -1,0 +1,6 @@
+{
+  "InitDB_required": false,
+  "InitDB_Cmd": "D:\\DSoftware\\postgresSQL\\bin\\pg_restore -a -h localhost -p 5432 -U dchess -w -d mes %s\\WEB-INF\\dbbackup\\角色和用户.dbbackup",
+  "Backup_required": false,
+  "Backup_Cmd": "D:\\DSoftware\\postgresSQL\\bin\\pg_dump -Fc -c -h localhost -p 5432 -U dchess -w -f %s\\WEB-INF\\dbbackup\\dchess_backup_%s mes"
+}
