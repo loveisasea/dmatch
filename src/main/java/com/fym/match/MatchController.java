@@ -120,7 +120,7 @@ public class MatchController {
     @RequestMapping(value = "/pool/get", method = RequestMethod.POST)
     @ResponseBody
     public Object getMatchPool(@RequestBody GetMatchPoolCmd req) throws OpException {
-        Map<Integer, Queue<IUnit>> matchPool = this.matchEngine.getMatchPool(req.gameTypeKey);
+        Map<Integer, List<IUnit>> matchPool = this.matchEngine.getMatchPool(req.gameTypeKey);
         return new OpResult("已获取匹配池<" + req.gameTypeKey + ">", matchPool);
     }
 
@@ -133,7 +133,7 @@ public class MatchController {
     @RequestMapping(value = "/pool/getall", method = RequestMethod.POST)
     @ResponseBody
     public Object getAllMatchPool() throws OpException {
-        Map<GameType, Map<Integer, Queue<IUnit>>> matchPools = this.matchEngine.getMatchPools();
+        Map<GameType, Map<Integer, List<IUnit>>> matchPools = this.matchEngine.getMatchPools();
         return new OpResult("已获取所有匹配池", matchPools);
     }
 
@@ -149,6 +149,9 @@ public class MatchController {
         this.matchEngine.cleanMatchPool(req.gameTypeKey);
         return new OpResult("已清除匹配池<" + req.gameTypeKey + ">");
     }
+
+
+
 
 
 }

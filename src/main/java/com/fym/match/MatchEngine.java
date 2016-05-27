@@ -11,6 +11,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
  * Owned by Planck System
@@ -22,7 +23,7 @@ public class MatchEngine implements InitializingBean {
 
     private Map<GameType, TreeMap<Integer, Queue<IUnit>>> matchPools = new HashMap<>();
 
-    private final static int Max_Score_Diff = 10;
+    private final static int Max_Score_Diff = 100;
 
     private final static int Buffer_Match = 4;
 
@@ -36,7 +37,7 @@ public class MatchEngine implements InitializingBean {
         if (matchpool == null) {
             throw new OpException(OpResult.INVALID, "找不到该比赛类型" + gameType);
         }
-        if (mUnit == null || mUnit.getSize() == 0 || mUnit.getPersons().size() == 0) {
+        if (mUnit == null || mUnit.getSize() == 0) {
             throw new OpException(OpResult.FAIL, "匹配玩家或队伍不能为空");
         }
         if (gameType.pcnt < mUnit.getSize()) {
@@ -46,63 +47,51 @@ public class MatchEngine implements InitializingBean {
         int restCnt = gameType.pcnt * 2 - mUnit.getSize() + Buffer_Match; //需要挑出来匹配的玩家总数量
         List<IUnit> results = new ArrayList<>(); //初步挑出来匹配的玩家
 
-        //同一分数匹配
-        {
-            Queue<IUnit> scoreLevel = matchpool.get(mUnit.getScore());
-            if (scoreLevel != null) {
-                //先查找同等分数的
-                while (restCnt > 0) {
-                    IUnit pickUnit = scoreLevel.poll();
-                    if (pickUnit == null) {
-                        break;
-                    }
-                    results.add(pickUnit);
-                    restCnt = restCnt - pickUnit.getSize();
-                }
-            }
-        }
 
         //上下分数匹配
         {
-            Map.Entry<Integer, Queue<IUnit>> hEntry = matchpool.higherEntry(mUnit.getScore());
-            Map.Entry<Integer, Queue<IUnit>> lEntry = matchpool.lowerEntry(mUnit.getScore());
+            Map.Entry<Integer, Queue<IUnit>> hEntry = matchpool.ceilingEntry(mUnit.getScore());
+            Map.Entry<Integer, Queue<IUnit>> lEntry = matchpool.floorEntry(mUnit.getScore());
             //每次循环各取高低一个单位
             while (restCnt > 0) {
                 if (hEntry == null && lEntry == null) {
                     break;
                 }
                 //寻找分高的玩家
-                while (hEntry.getValue().size() == 0) {
+                while (hEntry != null && hEntry.getValue().size() == 0) {
                     hEntry = matchpool.higherEntry(hEntry.getKey());
                     if (hEntry == null) {
                         break;
                     }
-                    if (Math.abs(hEntry.getKey() - mUnit.getScore()) > Max_Score_Diff) {
-                        hEntry = null;
-                    }
                 }
                 if (hEntry != null) {
-                    IUnit pickUnit = hEntry.getValue().poll();
-                    if (pickUnit != null) {
-                        results.add(pickUnit);
-                        restCnt = restCnt - pickUnit.getSize();
+                    if (Math.abs(hEntry.getKey() - mUnit.getScore()) > Max_Score_Diff) {
+                        hEntry = null;
+                    } else {
+                        IUnit pickUnit = hEntry.getValue().poll();
+                        if (pickUnit != null) {
+                            results.add(pickUnit);
+                            restCnt = restCnt - pickUnit.getSize();
+                        }
                     }
                 }
                 //寻找分低的玩家
-                while (lEntry.getValue().size() == 0) {
+                while (lEntry != null && lEntry.getValue().size() == 0) {
                     lEntry = matchpool.lowerEntry(lEntry.getKey());
                     if (lEntry == null) {
                         break;
                     }
-                    if (Math.abs(lEntry.getKey() - mUnit.getScore()) > Max_Score_Diff) {
-                        lEntry = null;
-                    }
+
                 }
                 if (lEntry != null) {
-                    IUnit pickUnit = lEntry.getValue().poll();
-                    if (pickUnit != null) {
-                        results.add(pickUnit);
-                        restCnt = restCnt - pickUnit.getSize();
+                    if (Math.abs(lEntry.getKey() - mUnit.getScore()) > Max_Score_Diff) {
+                        lEntry = null;
+                    } else {
+                        IUnit pickUnit = lEntry.getValue().poll();
+                        if (pickUnit != null) {
+                            results.add(pickUnit);
+                            restCnt = restCnt - pickUnit.getSize();
+                        }
                     }
                 }
             }
@@ -110,7 +99,7 @@ public class MatchEngine implements InitializingBean {
         Match match = new Match(gameType);
         List<IUnit> toReturn = results;
         //有足够的玩家进行二次挑选
-        if (restCnt <= 0) {
+        if (restCnt <= Buffer_Match) {
             Collections.sort(results, new Comparator<IUnit>() {
                 //玩家选择顺序规则
                 @Override
@@ -139,7 +128,7 @@ public class MatchEngine implements InitializingBean {
                 //挑选team2
                 Iterator<IUnit> iter2 = results2.iterator();
                 lastTeam2 = null;
-                while (iter2.hasNext()) {
+                while (match.team2size() < gameType.pcnt && iter2.hasNext()) {
                     IUnit pickUnit = iter2.next();
                     if (pickUnit.getSize() == lastTeam1.getSize()) {
                         lastTeam2 = pickUnit;
@@ -155,9 +144,9 @@ public class MatchEngine implements InitializingBean {
                 //挑选team1
                 Iterator<IUnit> iter1 = results2.iterator();
                 lastTeam1 = null;
-                while (iter1.hasNext()) {
+                while (match.team1size() < gameType.pcnt && iter1.hasNext()) {
                     IUnit pickUnit = iter1.next();
-                    if (pickUnit.getSize() + match.team1.size() <= gameType.pcnt) {
+                    if (pickUnit.getSize() + match.team1size() <= gameType.pcnt) {
                         lastTeam1 = pickUnit;
                         match.team1.add(lastTeam1);
                         iter1.remove();
@@ -169,7 +158,7 @@ public class MatchEngine implements InitializingBean {
                     break;
                 }
             }
-            if (match.team1.size() == gameType.pcnt && match.team2.size() == gameType.pcnt) {
+            if (match.team1size() == gameType.pcnt && match.team2size() == gameType.pcnt) {
                 toReturn = results2;
             } else {
                 toReturn.add(mUnit); //需要把当前玩家也加进去
@@ -185,20 +174,37 @@ public class MatchEngine implements InitializingBean {
             IUnit picked = iReturn.next();
             Queue<IUnit> queue = matchpool.get(picked.getScore());
             if (queue == null) {
-                queue = new PriorityQueue<>();
+                queue = new LinkedBlockingQueue<>();
                 matchpool.put(picked.getScore(), queue);
             }
             queue.add(picked);
         }
-        return match;
+        if (match == null) {
+            return null;
+        } else {
+            //平衡team1和team2的分数
+            Match matchret = new Match(match.gameType);
+            for (int i = 0; i < match.team1.size(); i++) {
+                boolean team1higher = matchret.scoreDiff() > 0;
+                boolean team2higher = (match.team2.get(i).getScore() - match.team1.get(i).getScore()) > 0;
+                if (team1higher ^ team2higher) {
+                    matchret.team1.add(match.team2.get(i));
+                    matchret.team2.add(match.team1.get(i));
+                } else {
+                    matchret.team1.add(match.team1.get(i));
+                    matchret.team2.add(match.team2.get(i));
+                }
+            }
+            return match;
+        }
     }
 
-    public Map<GameType, Map<Integer, Queue<IUnit>>> getMatchPools() {
+    public Map<GameType, Map<Integer, List<IUnit>>> getMatchPools() {
         Map ret = new HashMap();
         for (Map.Entry<GameType, TreeMap<Integer, Queue<IUnit>>> mapEntry : this.matchPools.entrySet()) {
-            HashMap<Integer, Queue<IUnit>> retEntry = new HashMap();
+            HashMap<Integer, List<IUnit>> retEntry = new HashMap();
             for (Map.Entry<Integer, Queue<IUnit>> entry : mapEntry.getValue().entrySet()) {
-                retEntry.put(entry.getKey(), entry.getValue());
+                retEntry.put(entry.getKey(), new ArrayList<IUnit>(entry.getValue()));
             }
             ret.put(mapEntry.getKey(), retEntry);
         }
@@ -206,14 +212,14 @@ public class MatchEngine implements InitializingBean {
         return ret;
     }
 
-    public Map<Integer, Queue<IUnit>> getMatchPool(Integer gameTypeKey) throws OpException {
+    public Map<Integer, List<IUnit>> getMatchPool(Integer gameTypeKey) throws OpException {
         TreeMap<Integer, Queue<IUnit>> matchpool = this.matchPools.get(GameType.get(gameTypeKey));
         if (matchpool == null) {
             throw new OpException(OpResult.INVALID, "找不到该比赛类型" + gameTypeKey);
         }
-        HashMap<Integer, Queue<IUnit>> ret = new HashMap();
+        HashMap<Integer, List<IUnit>> ret = new HashMap();
         for (Map.Entry<Integer, Queue<IUnit>> entry : matchpool.entrySet()) {
-            ret.put(entry.getKey(), entry.getValue());
+            ret.put(entry.getKey(), new ArrayList<IUnit>(entry.getValue()));
         }
         return ret;
     }

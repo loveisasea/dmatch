@@ -40,9 +40,5 @@ public class Group implements IUnit {
         return this.persons.size();
     }
 
-    @Override
-    public List<Person> getPersons() {
-        return new ArrayList<>(this.persons);
-    }
 }
  

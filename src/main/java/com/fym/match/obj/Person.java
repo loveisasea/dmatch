@@ -1,8 +1,5 @@
 package com.fym.match.obj;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * Owned by Planck System
  * Created by fengy on 2016/5/25.
@@ -26,7 +23,7 @@ public class Person implements IUnit {
 
     @Override
     public int getScore() {
-        return this.pid;
+        return this.score;
     }
 
     @Override
@@ -34,11 +31,5 @@ public class Person implements IUnit {
         return 1;
     }
 
-    @Override
-    public List<Person> getPersons() {
-        List<Person> ret = new ArrayList<>(1);
-        ret.add(this);
-        return ret;
-    }
 }
  
