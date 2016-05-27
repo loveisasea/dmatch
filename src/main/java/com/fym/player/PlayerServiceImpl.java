@@ -97,12 +97,12 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
-    public List<Player> getList(List<Integer> playerids, Integer field) {
+    public List<Player> getList(List<Integer> pids, Integer field) {
         List<Playerbs> playerbss = null;
-        if (playerids == null) {
+        if (pids == null) {
             playerbss = this.playerbsDao.getAll();
         } else {
-            playerbss = this.playerbsDao.createPQuery().inCollection("pid", playerids).query();
+            playerbss = this.playerbsDao.createPQuery().inCollection("pid", pids).query();
         }
         List<Player> players = this.genPlayers(playerbss);
         this.fill(players, field);

@@ -20,7 +20,7 @@ import java.util.Random;
 @Component
 public class GameEngine implements InitializingBean {
 
-    public Game genGame(GameType gametype, List<PlayerLoginS> redPlayers, List<PlayerLoginS> blackPlayers) throws OpException {
+    public Game genGame(GameType gameType, List<PlayerLoginS> redPlayers, List<PlayerLoginS> blackPlayers) throws OpException {
         if (redPlayers == null) {
             throw new OpException(OpResult.INVALID, "红方玩家数量为空");
         }
@@ -30,13 +30,13 @@ public class GameEngine implements InitializingBean {
         if (redPlayers.size() != blackPlayers.size()) {
             throw new OpException(OpResult.INVALID, "红黑双方玩家数量不一致。红方<" + redPlayers.size() + ">，黑方<" + blackPlayers.size() + ">");
         }
-        if (gametype == null) {
+        if (gameType == null) {
             throw new OpException(OpResult.INVALID, "游戏类型为空");
         }
 
         int playerCnt = redPlayers.size();
         Game game = new Game();
-        game.type = gametype;
+        game.type = gameType;
         game.battleField = this.createBattleFied(game.type, playerCnt);
 
         game.redPlayers = new ArrayList<>();
@@ -66,20 +66,20 @@ public class GameEngine implements InitializingBean {
 
     }
 
-    private BattleField createBattleFied(GameType gametype, int playerCnt) throws OpException {
-        if (gametype.equals(GameType._1v1_ladder) || gametype.equals(GameType._1v1_normal)) {
+    private BattleField createBattleFied(GameType gameType, int playerCnt) throws OpException {
+        if (gameType.equals(GameType._1v1_ladder) || gameType.equals(GameType._1v1_normal)) {
             if (playerCnt == 1) {
                 return new BattleField(BattleFieldType._1v1);
             } else {
-                throw new OpException(OpResult.INVALID, "<" + gametype + ">玩家数量应该是1，不应该是<" + playerCnt + ">");
+                throw new OpException(OpResult.INVALID, "<" + gameType + ">玩家数量应该是1，不应该是<" + playerCnt + ">");
             }
-        } else if (gametype.equals(GameType._nvn_ladder) || gametype.equals(GameType._nvn_normal)) {
+        } else if (gameType.equals(GameType._nvn_ladder) || gameType.equals(GameType._nvn_normal)) {
             if (playerCnt == 2) {
                 return new BattleField(BattleFieldType._2v2);
             } else if (playerCnt == 3) {
                 return new BattleField(BattleFieldType._3v3);
             } else {
-                throw new OpException(OpResult.INVALID, "<" + gametype + ">玩家数量应该是2或3，不应该是<" + playerCnt + ">");
+                throw new OpException(OpResult.INVALID, "<" + gameType + ">玩家数量应该是2或3，不应该是<" + playerCnt + ">");
             }
         } else {
             throw new OpException(OpResult.INVALID, "没有对应的游戏类型");

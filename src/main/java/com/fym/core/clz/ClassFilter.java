@@ -1,4 +1,4 @@
-package com.fym.core.enm.obj;
+package com.fym.core.clz;
 
 /**
  * Owned by Planck System

@@ -1,4 +1,6 @@
-package com.fym.game;
+package com.fym.match;
+
+import com.fym.game.obj.Game;
 
 /**
  * Owned by Planck System
@@ -10,9 +12,9 @@ public interface MatchService {
     /**
      * 参加游戏匹配
      *
-     * @param gameType
+     * @param gameTypeStr
      */
-    void joinMatch(Integer gameType);
+    void joinMatch(String gameTypeStr);
 
 
     /**
@@ -21,4 +23,10 @@ public interface MatchService {
     void quitMatch();
 
 
-} 
+    /**
+     * 等待匹配
+     *
+     * @return
+     */
+    Game waitingMatch();
+}

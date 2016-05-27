@@ -28,7 +28,7 @@ public interface PlayerService {
     /**
      * 获取玩家信息
      *
-     * @param playerid 玩家id
+     * @param pid 玩家id
      * @param field    字段选择
      * @return
      */
@@ -38,11 +38,11 @@ public interface PlayerService {
     /**
      * 获取玩家信息
      *
-     * @param playerids 玩家id列表
+     * @param pids 玩家id列表
      * @param field     字段选择
      * @return
      */
-    List<Player> getList(List<Integer> playerids, Integer field);
+    List<Player> getList(List<Integer> pids, Integer field);
 
     /**
      * 检查账户密码

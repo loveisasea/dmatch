@@ -45,7 +45,8 @@ public class EnumController {
     @ResponseBody
     public Object getAllDatadicts() throws OpException {
 //        Map all = EnumHelperEx.getAll();
-        return new OpResult("已获取enums", EnumHelperEx.getall());
+//        return new OpResult("已获取enums", EnumHelperEx.getall());
+        return new OpResult("已获取enums");
     }
 
 }

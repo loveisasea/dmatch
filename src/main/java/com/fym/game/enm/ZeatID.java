@@ -1,36 +1,63 @@
 package com.fym.game.enm;
-
 /**
  * Owned by Planck System
- * Created by fengy on 2016/5/20.
+ * Created by fengy on 2016/5/27.
+ * 棋子
  */
-public enum ZeatID {
-    红帅(1, "帅"),
-    红車(2, "車"),
-    红馬(3, "馬"),
-    红炮(4, "炮"),
-    红仕(5, "仕"),
-    红相(6, "相"),
-    红兵(7, "兵"),
-    黑将(8, "将"),
-    黑車(9, "車"),
-    黑馬(10, "馬"),
-    黑砲(11, "砲"),
-    黑士(12, "士"),
-    黑象(13, "象"),
-    黑卒(14, "卒");
 
-    public static String TypeName = "棋子";
+import com.fym.core.enm.obj.IEnm;
 
-    public Integer key;
-    public String name;
+
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
+
+public class ZeatID extends IEnm {
+    public final static String TypeName = "棋子";
+    public final static ZeatID 红帅 = new ZeatID(1, "帅");
+    public final static ZeatID 红車 = new ZeatID(2, "車");
+    public final static ZeatID 红馬 = new ZeatID(3, "馬");
+    public final static ZeatID 红炮 = new ZeatID(4, "炮");
+    public final static ZeatID 红仕 = new ZeatID(5, "仕");
+    public final static ZeatID 红相 = new ZeatID(6, "相");
+    public final static ZeatID 红兵 = new ZeatID(7, "兵");
+    public final static ZeatID 黑将 = new ZeatID(8, "将");
+    public final static ZeatID 黑車 = new ZeatID(9, "車");
+    public final static ZeatID 黑馬 = new ZeatID(10, "馬");
+    public final static ZeatID 黑砲 = new ZeatID(11, "砲");
+    public final static ZeatID 黑士 = new ZeatID(12, "士");
+    public final static ZeatID 黑象 = new ZeatID(13, "象");
+    public final static ZeatID 黑卒 = new ZeatID(14, "卒");
+    private final static Map<Object, ZeatID> map = new HashMap<>();
 
     ZeatID(Integer key, String name) {
-        this.key = key;
-        this.name = name;
+        super(key, name);
     }
 
-    public TeamType teamType() {
-        return (this.key < 黑将.key) ? TeamType.红 : TeamType.黑;
+    public static ZeatID get(Integer key) {
+        return map.get(key);
     }
-}
+
+    public static String getn(Integer key) {
+        ZeatID zeatid = get(key);
+        return zeatid == null ? IEnm.Unknown : zeatid.name;
+    }
+
+
+    static {
+        Field[] fields = ZeatID.class.getDeclaredFields();
+        for (Field field : fields) {
+            int modifiers = field.getModifiers();
+            if (Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)
+                    && field.getType().equals(field.getDeclaringClass())) {
+                try {
+                    ZeatID zeatid = (ZeatID) field.get(null);
+                    map.put(zeatid.key, zeatid);
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+} 

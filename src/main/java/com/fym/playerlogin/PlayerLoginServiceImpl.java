@@ -31,7 +31,7 @@ public class PlayerLoginServiceImpl implements PlayerLoginService {
     private static final Logger LOGGER = LoggerFactory.getLogger(PlayerLoginServiceImpl.class);
 
 
-    //<playerid,player>
+    //<pid,player>
     private Map<Integer, PlayerLoginS> map_id_logins = new ConcurrentHashMap<>();
     private Map<String, PlayerLoginS> map_ticket_logins = new ConcurrentHashMap<>();
 
@@ -71,16 +71,6 @@ public class PlayerLoginServiceImpl implements PlayerLoginService {
     }
 
 
-    private PlayerLoginS buildLoginS(Player player) throws OpException {
-        PlayerLoginS loginS = new PlayerLoginS(player.playerbs.id);
-        loginS.nname = player.playerbs.nname;
-        loginS.lastTouchTime = DateUtil.getCurrent();
-        loginS.t = UUID.randomUUID().toString();
-        loginS.roleids = new HashSet<>(player.roleids);
-        return loginS;
-    }
-
-
     @Override
     public void logout() {
         PlayerLoginS oldLoginS = (PlayerLoginS) this.webContextHolder.getSession().getAttribute("loginS");
@@ -104,4 +94,16 @@ public class PlayerLoginServiceImpl implements PlayerLoginService {
             return loginS;
         }
     }
+
+
+    private PlayerLoginS buildLoginS(Player player) throws OpException {
+        PlayerLoginS loginS = new PlayerLoginS(player.playerbs.id);
+        loginS.nname = player.playerbs.nname;
+        loginS.lastTouchTime = DateUtil.getCurrent();
+        loginS.t = UUID.randomUUID().toString();
+        loginS.roleids = new HashSet<>(player.roleids);
+        return loginS;
+    }
+
+
 }

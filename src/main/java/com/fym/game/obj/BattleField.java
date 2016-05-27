@@ -13,7 +13,7 @@ public class BattleField {
 
     public BattleField(BattleFieldType type) {
         this.type = type;
-        this.pies = new Zeat[this.type.x][this.type.y];
+        this.pies = new Zeat[this.type.width][this.type.height];
     }
 }
  
