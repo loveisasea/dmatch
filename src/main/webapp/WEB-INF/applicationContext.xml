@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xmlns:util="http://www.springframework.org/schema/util"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+       http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd">
+
+
+    <!-- ========================================================================================================== -->
+    <!-- ================================= 参数和上下文配置 ======================================================== -->
+    <!-- ========================================================================================================== -->
+    <context:property-placeholder location="./WEB-INF/dchess.properties"/>
+    <bean id="coconutConfigurer" class="com.fym.core.util.Prop">
+        <property name="ignoreResourceNotFound" value="true"/>
+        <property name="locations">
+            <list>
+            </list>
+        </property>
+    </bean>
+
+
+
+    <!-- ========================================================================================================== -->
+    <!-- ============================ 注解扫描（service，persistence） ============================================= -->
+    <!-- ========================================================================================================== -->
+    <!-- Enable annotation configuration -->
+    <context:annotation-config/>
+    <!-- ========================================================================================================== -->
+    <!-- ============================ bean ======================================================================== -->
+    <!-- ========================================================================================================== -->
+    <!--<bean id="TicketAddedFilter" class="com.plk.core.web.TicketAddedFilter" />-->
+
+
+    <!-- ========================================================================================================== -->
+    <!-- ============================== SQL 语句bean =================================================== -->
+    <!-- ========================================================================================================== -->
+    <!-- 可以直接将一个文件路径赋值给Resource类型的resource属性,spring会根据路径自动转换成对应的Resource -->
+
+
+    <!-- ========================================================================================================== -->
+    <!-- ================================= 数据库连接和事务 ==================================================== -->
+    <!-- ========================================================================================================== -->
+
+    <bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator"/>
+
+
+
+    <!-- ========================================================================================================== -->
+    <!-- ================================= 文件上传 ==================================================== -->
+    <!-- ========================================================================================================== -->
+
+    <!-- 这里申明的id必须为multipartResolver -->
+    <!--<bean id="multipartResolver" class="org.springframework.controller.multipart.commons.CommonsMultipartResolver">-->
+
+    <!--&lt;!&ndash; one of the properties available; the maximum file size in bytes (20MB) &ndash;&gt;-->
+    <!--<property name="maxUploadSize" value="20971520"/>-->
+    <!--<property name="defaultEncoding" value="UTF-8"/>-->
+    <!--</bean>-->
+
+    <tx:annotation-driven/>
+
+    <!-- ========================================================================================================== -->
+    <!-- ================================= Activiti 配置 =========================================================== -->
+    <!-- ========================================================================================================== -->
+    <!--<bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">-->
+    <!--<property name="dataSource" ref="dataSource"/>-->
+    <!--<property name="transactionManager" ref="transactionManager"/>-->
+    <!--<property name="databaseSchemaUpdate" value="true"/>-->
+    <!--<property name="jobExecutorActivate" value="false"/>-->
+    <!--</bean>-->
+
+</beans>

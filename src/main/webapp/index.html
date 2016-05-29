@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Planck System</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta http-equiv="keywords" content="keyword1,keyword2,keyword3">
+    <meta http-equiv="description" content="this is my page">
+    <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+    <!-- 样式 -->
+	<link rel="stylesheet" href="Framework/ext/resources/ext-theme-neptune/ext-theme-neptune-all.css" type="text/css"/>
+ 	<link rel="stylesheet" href="Framework/css/style1.css" type="text/css"/>
+    <link rel="stylesheet" href="Framework/css/demo.css" type="text/css"/>
+    <!-- 按钮样式 -->
+    <link rel="stylesheet" href="Framework/css/buttonGray.css" type="text/css"/>
+    <!-- Ext -->
+  	<script type="text/javascript" src="Framework/ext/ext-all.js"></script>
+    <script type="text/javascript" src="Framework/ext/shared/examples.js"></script>
+    <!-- Jquery-1.7.2 -->
+    <script type="text/javascript" src="Framework/ext/jquery-1.7.2.min.js"></script>
+    <script type="text/javascript" src="Framework/highcharts.js"></script>
+    <!-- websocket自动连接 -->
+ 	<script type="text/javascript" src="Framework/util/reconnecting-websocket.min.js"></script>
+    <!-- xxy自动加载架构 -->
+  	<script type="text/javascript" src="Framework/util/xxy.js"></script>
+    <!-- Ext中文语言 -->
+  	<script type="text/javascript" src="Framework/ext/ext-lang-zh_CN.js"></script>
+  	<script type="text/javascript" src="Framework/util/bean.js"></script>
+    <script>
+        //Ext.MessageBox.minWidth   =300;
+        //Ext.MessageBox.minHeight  =300;
+
+        var sys = {};
+      var sever = new ReconnectingWebSocket("ws://127.0.0.1:5888");
+      var printTo = function(str,code){
+          var pdata = [];
+          var reg = /[\u4e00-\u9fa5]/g;
+          var num = 0;
+          pdata.push({//编码
+            x:136,
+            y:0,
+            w:0,
+            h:0,
+            b:1,
+            Str:code,
+            printType:1
+          });
+          ////////////////////////
+          if(str.match(reg)!=null){
+              num=str.match(reg).length*2;
+          }
+          pdata.push({
+            x:(800-(num+str.length)*50)/2,
+            height:100,
+            w:50,
+            h:50,
+            b:3,
+            Str:str,
+            printType:0
+          });
+          //Ext.MessageBox.minWidth   =300;
+          Ext.MessageBox.minHeight  =300;
+          sys.printCode = code;
+          try{
+              sever.send(JSON.stringify(pdata));
+          }catch(e){
+              Ext.Msg.show({
+                  title:"提示信息",
+                  modal:true,
+                  msg:"打印机没有连接。当前库存条形码为&lt;"+sys.printCode+"&gt;",
+                 // icon:Ext.Msg.Info,
+                  //multiline:true,
+                  //prompt:true,
+                  fn:function callback(btn,text){
+
+                  },
+                  buttons:Ext.Msg.OK,
+                  width:350/*,
+                  height:200*/
+              });
+          }
+
+      };
+    </script>
+    <style>
+      .b {border-collapse: collapse}
+      .b td{border:1px dashed #ccc;}
+    </style>
+ </head>
+  <body onload="_('App.adminLogin.panel')()">
+  </body>
+</html>
