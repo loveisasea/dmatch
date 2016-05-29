@@ -1,7 +1,7 @@
 package com.fym.core.util;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/5/14.
  */
 public class BitUtil {

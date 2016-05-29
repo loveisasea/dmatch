@@ -11,7 +11,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/5/20.
  */
 public class GameType extends IEnm {

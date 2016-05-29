@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/2/18.
  */
 public class JsonReadHttpServletResponse extends HttpServletResponseWrapper {

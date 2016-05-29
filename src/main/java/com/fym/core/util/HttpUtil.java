@@ -16,7 +16,7 @@ import java.net.NetworkInterface;
 import java.net.URL;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/2/18.
  */
 @Component

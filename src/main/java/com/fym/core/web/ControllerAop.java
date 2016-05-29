@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/5/18.
  */
 @Aspect

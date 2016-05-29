@@ -4,7 +4,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/4/11.
  */
 public class ProceedStatus {

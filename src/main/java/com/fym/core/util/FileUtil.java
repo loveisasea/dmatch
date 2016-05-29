@@ -3,7 +3,7 @@ package com.fym.core.util;
 import java.io.*;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/5/5.
  * 文件Util
  */

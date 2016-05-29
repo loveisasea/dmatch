@@ -9,7 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/3/23.
  * 任务状态机
  */

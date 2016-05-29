@@ -5,7 +5,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/5/25.
  */
 public class Group implements IUnit {

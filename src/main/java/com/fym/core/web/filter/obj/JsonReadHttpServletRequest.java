@@ -1,7 +1,7 @@
 package com.fym.core.web.filter.obj;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/2/18.
  */
 

@@ -14,7 +14,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/4/26.
  * 配置
  */

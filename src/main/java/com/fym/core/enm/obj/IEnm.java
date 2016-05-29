@@ -1,7 +1,7 @@
 package com.fym.core.enm.obj;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/5/26.
  */
 public class IEnm {

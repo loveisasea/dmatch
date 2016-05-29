@@ -3,7 +3,7 @@ package com.fym.core.web.cmd;
 import java.util.Map;
 
 /**
- * Owned by Planck System
+ *
  * Created by fengy on 2016/2/4.
  */
 public class GetListCmd {
