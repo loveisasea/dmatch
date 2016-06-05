@@ -12,13 +12,13 @@ public class Group implements IUnit {
     /**
      * 分数
      */
-    private int score;
+    public int score;
 
 
     /**
      * 玩家id
      */
-    private List<Person> persons;
+    public List<Person> persons;
 
 
     public Group(Collection<Person> persons) {

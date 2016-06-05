@@ -7,6 +7,7 @@ package com.fym.match;
 
 import com.fym.core.err.OpException;
 import com.fym.core.err.OpResult;
+import com.fym.core.util.StringUtil;
 import com.fym.game.enm.GameType;
 import com.fym.match.cmd.*;
 import com.fym.match.obj.Group;
@@ -47,8 +48,8 @@ public class MatchController {
     @ResponseBody
     public Object joinMatch(@RequestBody JoinMatchCmd req) throws OpException {
 
-        this.matchService.joinMatch(req.gameTypeStr);
-        return new OpResult("已加入匹配<" + req.gameTypeStr + ">");
+        this.matchService.joinMatch(req.gameTypeKeys);
+        return new OpResult("已加入匹配<" + StringUtil.compact( req.gameTypeKeys) + ">");
     }
 
     /**
@@ -61,7 +62,7 @@ public class MatchController {
     @ResponseBody
     public Object quitMatch() throws OpException {
 
-        this.matchService.quitMatch();
+        this.matchService.quitMatching();
         return new OpResult("已退出匹配");
     }
 

@@ -1,23 +1,24 @@
 package com.fym.match.obj;
 
-import com.fym.game.enm.GameType;
-
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Owned by Planck System
  * Created by fengy on 2016/5/25.
  */
 public class Match {
-    public GameType gameType;
     public List<IUnit> team1;
     public List<IUnit> team2;
 
-    public Match(GameType gameType) {
-        this.gameType = gameType;
-        this.team1 = new ArrayList<>(gameType.pcnt);
-        this.team2 = new ArrayList<>(gameType.pcnt);
+    public Set<Integer> accepts;
+
+    public Match() {
+        this.team1 = new ArrayList<>();
+        this.team2 = new ArrayList<>();
+        this.accepts = new HashSet<>();
     }
 
     public int team1size() {
@@ -57,6 +58,45 @@ public class Match {
         return score;
     }
 
+
+    /**
+     * 获取所有玩家的pid
+     *
+     * @return
+     */
+    public List<Integer> allpids() {
+        List<Integer> team1pids = this.team1pids();
+        team1pids.addAll(team2pids());
+        return team1pids;
+    }
+
+    public List<Integer> team1pids() {
+        List<Integer> pids = new ArrayList<>();
+        for (IUnit iUnit : this.team1) {
+            if (iUnit instanceof Person) {
+                pids.add(((Person) iUnit).pid);
+            } else if (iUnit instanceof Group) {
+                for (Person person : ((Group) iUnit).persons) {
+                    pids.add(person.pid);
+                }
+            }
+        }
+        return pids;
+    }
+
+    public List<Integer> team2pids() {
+        List<Integer> pids = new ArrayList<>();
+        for (IUnit iUnit : this.team2) {
+            if (iUnit instanceof Person) {
+                pids.add(((Person) iUnit).pid);
+            } else if (iUnit instanceof Group) {
+                for (Person person : ((Group) iUnit).persons) {
+                    pids.add(person.pid);
+                }
+            }
+        }
+        return pids;
+    }
 
 }
  

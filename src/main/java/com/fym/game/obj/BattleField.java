@@ -15,5 +15,16 @@ public class BattleField {
         this.type = type;
         this.pies = new Zeat[this.type.width][this.type.height];
     }
+
+    public BattleField copy() {
+        BattleField ret = new BattleField(this.type);
+        for (int i = 0; i < pies.length; i++) {
+            Zeat[] py = pies[i];
+            for (int j = 0; j < py.length; j++) {
+                ret.pies[i][j] = this.pies[i][j].copy();
+            }
+        }
+        return ret;
+    }
 }
  

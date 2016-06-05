@@ -34,7 +34,7 @@ public interface PlayerLoginService {
      *
      * @return 登录信息
      */
-    PlayerLoginS getLogin();
+    PlayerLoginS getLogin() throws OpException;
 
 
 } 

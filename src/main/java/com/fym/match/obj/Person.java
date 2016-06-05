@@ -9,12 +9,12 @@ public class Person implements IUnit {
     /**
      * 玩家id
      */
-    private int pid;
+    public int pid;
 
     /**
      * 分值
      */
-    private int score;
+    public int score;
 
     public Person(int pid, int score) {
         this.pid = pid;

@@ -3,69 +3,170 @@ package com.fym.game.engine;
 
 import com.fym.core.err.OpException;
 import com.fym.core.err.OpResult;
+import com.fym.core.util.DateUtil;
 import com.fym.game.enm.*;
-import com.fym.game.obj.BattleField;
-import com.fym.game.obj.Game;
-import com.fym.game.obj.Gplayer;
-import com.fym.game.obj.Zeat;
-import com.fym.playerlogin.obj.PlayerLoginS;
+import com.fym.game.obj.*;
+import com.fym.match.obj.Match;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 @Component
 public class GameEngine implements InitializingBean {
 
-    public Game genGame(GameType gameType, List<PlayerLoginS> redPlayers, List<PlayerLoginS> blackPlayers) throws OpException {
-        if (redPlayers == null) {
-            throw new OpException(OpResult.INVALID, "红方玩家数量为空");
+    public Game genGame(GameType gameType, Match match) throws OpException {
+        if (match == null) {
+            throw new OpException(OpResult.INVALID, "match为空");
         }
-        if (blackPlayers == null) {
-            throw new OpException(OpResult.INVALID, "黑方玩家数量为空");
-        }
-        if (redPlayers.size() != blackPlayers.size()) {
-            throw new OpException(OpResult.INVALID, "红黑双方玩家数量不一致。红方<" + redPlayers.size() + ">，黑方<" + blackPlayers.size() + ">");
+        if (match.team1 == null || match.team1.size() == 0 || match.team2 == null || match.team2.size() == 0) {
+            throw new OpException(OpResult.INVALID, "一方玩家数量为空");
         }
         if (gameType == null) {
             throw new OpException(OpResult.INVALID, "游戏类型为空");
         }
 
-        int playerCnt = redPlayers.size();
+        List<Integer> pidsR = match.team1pids();
+        List<Integer> pidsB = match.team2pids();
+        if (pidsR.size() != pidsR.size()) {
+            throw new OpException(OpResult.INVALID, "红黑双方玩家数量不一致。 <" + pidsR + "> != <" + pidsB + ">");
+        }
+
+        int playerCnt = match.team1.size();
         Game game = new Game();
         game.type = gameType;
-        game.battleField = this.createBattleFied(game.type, playerCnt);
+        game.initbattleField = this.createBattleFied(game.type, playerCnt);
+        game.gplayers = new ArrayList<>();
+        game.steps = new ArrayList<>();
 
-        game.redPlayers = new ArrayList<>();
-        for (int i = 0; i < redPlayers.size(); i++) {
-            PlayerLoginS redPlayer = redPlayers.get(i);
-            Gplayer gplayer = new Gplayer();
-            gplayer.pid = redPlayer.pid;
-            gplayer.nname = redPlayer.nname;
-            gplayer.teamtype = TeamType.红;
-            game.redPlayers.add(gplayer);
-            List<Zeat> zeats = this.genNoOrderZeats(gplayer);
-            this.fillBattleField(game.battleField, zeats, gplayer.teamtype, i);
+        //随机分配
+        Random random = new Random();
+        if (random.nextInt(2) == 1) {
+            List<Integer> tmp = pidsR;
+            pidsR = pidsB;
+            pidsB = tmp;
         }
 
-        game.blackPlayers = new ArrayList<>();
-        for (int i = 0; i < blackPlayers.size(); i++) {
-            Gplayer gplayer = new Gplayer();
-            gplayer.pid = gplayer.pid;
-            gplayer.nname = gplayer.nname;
-            gplayer.teamtype = TeamType.黑;
-            game.blackPlayers.add(gplayer);
-            List<Zeat> zeats = this.genNoOrderZeats(gplayer);
-            this.fillBattleField(game.battleField, zeats, gplayer.teamtype, i);
+        Iterator<Integer> iterR = pidsR.iterator();
+        Iterator<Integer> iterB = pidsB.iterator();
+        while (true) {
+            if ((!iterR.hasNext() && iterB.hasNext()) || (iterR.hasNext() && !iterB.hasNext())) {
+                throw new OpException(OpResult.FAIL, "玩家数量不匹配");
+            }
+            if (iterR.hasNext()) {
+                Integer pid = iterR.next();
+                Gplayer gplayer = new Gplayer();
+                gplayer.pid = pid;
+                gplayer.restTime = 2 * 1000 * 60 * 60;
+                game.gplayers.add(gplayer);
+
+                pid = iterB.next();
+                gplayer = new Gplayer();
+                gplayer.pid = pid;
+                gplayer.restTime = 2 * 1000 * 60 * 60;
+                game.gplayers.add(gplayer);
+            } else {
+                break;
+            }
         }
+
+
+        for (int i = 0; i < game.gplayers.size(); i = i + 2) {
+            List<Zeat> zeats = this.genNoOrderZeats(game.gplayers.get(i), TeamType.红);
+            this.fillBattleField(game.initbattleField, zeats, TeamType.红, i);
+        }
+
+        for (int i = 1; i < game.gplayers.size(); i = i + 2) {
+            List<Zeat> zeats = this.genNoOrderZeats(game.gplayers.get(i), TeamType.黑);
+            this.fillBattleField(game.initbattleField, zeats, TeamType.黑, i);
+        }
+
+
+        game.currbattleField = game.initbattleField.copy();
+
 
         return game;
-
     }
 
+    public void goStep(Game game, GameStep step) throws OpException {
+        if (game.winTeam != null) {
+            throw new OpException(OpResult.FAIL, "游戏已结束");
+        }
+        //当前玩家
+        int pseq = game.steps.size() % game.gplayers.size();
+        Integer currpid = game.gplayers.get(pseq).pid;
+
+        if (!step.pid.equals(currpid)) {
+            throw new OpException(OpResult.FAIL, "不到玩家<" + step.pid + ">走");
+        }
+
+        if (step.srtX >= game.currbattleField.type.width || step.srtX < 0) {
+            throw new OpException(OpResult.FAIL, "起始横坐标<" + step.srtX + ">已超出棋盘宽度<" + game.currbattleField.type.width + ">");
+        }
+        if (step.srtY >= game.currbattleField.type.height || step.srtY < 0) {
+            throw new OpException(OpResult.FAIL, "起始纵坐标<" + step.srtY + ">已超出棋盘高度<" + game.currbattleField.type.height + ">");
+        }
+        if (step.endX >= game.currbattleField.type.width || step.endX < 0) {
+            throw new OpException(OpResult.FAIL, "结束横坐标<" + step.endX + ">已超出棋盘宽度<" + game.currbattleField.type.width + ">");
+        }
+        if (step.endY >= game.currbattleField.type.height || step.endY < 0) {
+            throw new OpException(OpResult.FAIL, "结束纵坐标<" + step.endY + ">已超出棋盘高度<" + game.currbattleField.type.height + ">");
+        }
+        Zeat selfzeat = game.currbattleField.pies[step.srtX][step.endY];
+        if (selfzeat == null) {
+            throw new OpException(OpResult.FAIL, "该位置没有棋子可走");
+        }
+        if (selfzeat.pid.equals(step.pid)) {
+            throw new OpException(OpResult.FAIL, "棋子并不属于玩家<" + step.pid + ">");
+        }
+        Zeat targetzeat = game.currbattleField.pies[step.endX][step.endY];
+        //TODO 走法校验
+        if (targetzeat != null) {
+            if (targetzeat.sid.teamType().equals(selfzeat.sid.teamType())) {
+                throw new OpException(OpResult.FAIL, "不能吃己方子");
+            }
+        }
+
+
+        //设置开始时间
+        if (game.startDatetime == null) {
+            game.startDatetime = DateUtil.getCurrent();
+        }
+
+        //设置本步用时
+        step.duration = DateUtil.getCurrent().getTime() - game.startDatetime.getTime();
+        for (GameStep gameStep : game.steps) {
+            step.duration = step.duration - gameStep.duration;
+        }
+
+
+        //设置胜利方和所有时间
+        if (ZeatID.红帅.equals(targetzeat.rid)) {
+            game.winTeam = TeamType.黑;
+            game.duration = DateUtil.getCurrent().getTime() - game.startDatetime.getTime();
+        } else if (ZeatID.黑将.equals(targetzeat.rid)) {
+            game.winTeam = TeamType.红;
+            game.duration = DateUtil.getCurrent().getTime() - game.startDatetime.getTime();
+        } else {
+            //扣除玩家所用时间
+            game.gplayers.get(pseq).restTime -= step.duration;
+        }
+
+
+
+        step.seq = game.steps.size();
+        game.steps.add(step);
+    }
+
+
+    /**
+     * 创建棋盘
+     *
+     * @param gameType
+     * @param playerCnt
+     * @return
+     * @throws OpException
+     */
     private BattleField createBattleFied(GameType gameType, int playerCnt) throws OpException {
         if (gameType.equals(GameType._1v1_ladder) || gameType.equals(GameType._1v1_normal)) {
             if (playerCnt == 1) {
@@ -88,7 +189,7 @@ public class GameEngine implements InitializingBean {
 
 
     /**
-     * 填充棋子
+     * 填充棋盘
      *
      * @param battleField
      * @param zeats
@@ -142,6 +243,12 @@ public class GameEngine implements InitializingBean {
 
     }
 
+
+    /**
+     * 打印棋盘
+     *
+     * @param battlefield
+     */
     public void printBattleField(BattleField battlefield) {
         int ylength = battlefield.pies[0].length;
         for (int j = 0; j < ylength; j++) {
@@ -158,9 +265,15 @@ public class GameEngine implements InitializingBean {
         System.out.println();
     }
 
-    private List<Zeat> genNoOrderZeats(Gplayer gplayer) {
+    /**
+     * 随机生成棋子
+     *
+     * @param gplayer
+     * @return
+     */
+    private List<Zeat> genNoOrderZeats(Gplayer gplayer, TeamType teamtype) {
         List<Zeat> list = new LinkedList<>();
-        if (gplayer.teamtype.equals(TeamType.红)) {
+        if (teamtype.equals(TeamType.红)) {
             //帅
             Zeat zeat = new Zeat(ZeatID.红帅);
             zeat.pid = gplayer.pid;
@@ -273,39 +386,23 @@ public class GameEngine implements InitializingBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        this.test();
+//        this.test();
     }
 
-    private void test() throws OpException {
-        List<PlayerLoginS> reds = new ArrayList<>();
-        PlayerLoginS redPlayer = new PlayerLoginS();
-        redPlayer.pid = 1;
-        redPlayer.nname = "一狗子";
-        reds.add(redPlayer);
-        redPlayer = new PlayerLoginS();
-        redPlayer.pid = 2;
-        redPlayer.nname = "二狗子";
-        reds.add(redPlayer);
-        redPlayer = new PlayerLoginS();
-        redPlayer.pid = 3;
-        redPlayer.nname = "三狗子";
-        reds.add(redPlayer);
-
-        List<PlayerLoginS> blacks = new ArrayList<>();
-        PlayerLoginS blackPlayer = new PlayerLoginS();
-        blackPlayer.pid = 4;
-        blackPlayer.nname = "小强";
-        blacks.add(blackPlayer);
-        blackPlayer = new PlayerLoginS();
-        blackPlayer.pid = 5;
-        blackPlayer.nname = "中强";
-        blacks.add(blackPlayer);
-        blackPlayer = new PlayerLoginS();
-        blackPlayer.pid = 6;
-        blackPlayer.nname = "大强";
-        blacks.add(blackPlayer);
-        Game game = this.genGame(GameType._nvn_ladder, reds, blacks);
-        this.printBattleField(game.battleField);
-
-    }
+//    private void test() throws OpException {
+//        Match match = new Match();
+//        match.team1.add(1);
+//        List<Integer> reds = new ArrayList<>();
+//        reds.add(1);
+//        reds.add(2);
+//        reds.add(3);
+//
+//        List<Integer> blacks = new ArrayList<>();
+//        blacks.add(4);
+//        blacks.add(5);
+//        blacks.add(6);
+//        Game game = this.genGame(GameType._nvn_ladder, reds, blacks);
+//        this.printBattleField(game.initbattleField);
+//
+//    }
 }

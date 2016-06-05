@@ -19,11 +19,9 @@ public class TeamType extends IEnm {
     public final static TeamType 黑 = new TeamType(2, "黑");
     private final static Map<Object, TeamType> map = new HashMap<>();
 
-    //public final int pcnt;
 
     TeamType(Integer key, String name) {
         super(key, name);
-        //this.pcnt = pcnt;
     }
 
     public static TeamType get(Integer key) {

@@ -110,6 +110,24 @@ public class PlayerServiceImpl implements PlayerService {
     }
 
     @Override
+    public Map<Integer, Player> getMapping(Collection<Integer> pids, Integer field) {
+        List<Playerbs> playerbss = null;
+        if (pids == null) {
+            playerbss = this.playerbsDao.getAll();
+        } else {
+            playerbss = this.playerbsDao.createPQuery().inCollection("pid", pids).query();
+        }
+        List<Player> players = this.genPlayers(playerbss);
+        this.fill(players, field);
+        Map<Integer, Player> ret = new HashMap<>();
+        for (Player player : players) {
+            ret.put(player.playerbs.id, player);
+        }
+
+        return ret;
+    }
+
+    @Override
     public Player getByPassword(String acct, String password) throws OpException {
         PlayerAccount acct1 = this.playerAccountDao.getSingleton("acct", acct);
         if (acct1 == null) {

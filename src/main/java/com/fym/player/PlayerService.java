@@ -3,7 +3,9 @@ package com.fym.player;
 import com.fym.core.err.OpException;
 import com.fym.player.obj.Player;
 
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Owned by Planck System
@@ -28,8 +30,8 @@ public interface PlayerService {
     /**
      * 获取玩家信息
      *
-     * @param pid 玩家id
-     * @param field    字段选择
+     * @param pid   玩家id
+     * @param field 字段选择
      * @return
      */
     Player get(Integer pid, Integer field) throws OpException;
@@ -38,11 +40,20 @@ public interface PlayerService {
     /**
      * 获取玩家信息
      *
-     * @param pids 玩家id列表
-     * @param field     字段选择
+     * @param pids  玩家id列表
+     * @param field 字段选择
      * @return
      */
     List<Player> getList(List<Integer> pids, Integer field);
+
+    /**
+     * 获取玩家信息
+     *
+     * @param pids  玩家id列表
+     * @param field 字段选择
+     * @return
+     */
+    Map<Integer, Player> getMapping(Collection<Integer> pids, Integer field);
 
     /**
      * 检查账户密码

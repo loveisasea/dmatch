@@ -27,12 +27,19 @@ public class Zeat {
     /**
      * 玩家id
      */
-    public int pid;
+    public Integer pid;
 
 
-    public Zeat(ZeatID id) {
-        this.rid = id;
+    public Zeat(ZeatID rid) {
+        this.rid = rid;
     }
 
+    public Zeat copy() {
+        Zeat ret = new Zeat(this.rid);
+        ret.sid = this.sid;
+        ret.pid = this.pid;
+        ret.status = this.status;
+        return ret;
+    }
 }
  

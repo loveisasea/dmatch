@@ -44,6 +44,10 @@ public class ZeatID extends IEnm {
         return zeatid == null ? IEnm.Unknown : zeatid.name;
     }
 
+    public TeamType teamType() {
+        return ((Integer) this.key >= (Integer) ZeatID.黑将.key) ? TeamType.黑 : TeamType.红;
+    }
+
 
     static {
         Field[] fields = ZeatID.class.getDeclaredFields();
