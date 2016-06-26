@@ -16,7 +16,7 @@
     </context-param>
 
     <welcome-file-list>
-        <welcome-file>login.html</welcome-file>
+        <welcome-file>index.html</welcome-file>
     </welcome-file-list>
 
     <listener>

@@ -11,6 +11,7 @@ import com.fym.core.web.WebContextHolder;
 import com.fym.player.PlayerService;
 import com.fym.player.obj.Player;
 import com.fym.playerbox.PlayerBoxCom;
+import com.fym.playerbox.obj.IMsg;
 import com.fym.playerlogin.entity.PlayerLoginHistory;
 import com.fym.playerlogin.entity.PlayerLoginHistoryDao;
 import com.fym.playerlogin.obj.PlayerLoginS;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -107,6 +109,13 @@ public class PlayerLoginServiceImpl implements PlayerLoginService {
         }
     }
 
+    @Override
+    public List<IMsg> takeMsg() throws OpException {
+        Integer selfpid = this.getLogin().pid;
+        List<IMsg> ret = this.playerBoxCom.takeMsg(selfpid);
+        return ret;
+    }
+
     /**
      * 获取登录信息
      * 1.session必须有
@@ -117,7 +126,7 @@ public class PlayerLoginServiceImpl implements PlayerLoginService {
     @Override
     public PlayerLoginS getLogin() throws OpException {
         try {
-            PlayerLoginS sessionLoginS = (PlayerLoginS) this.webContextHolder.getSession().getAttribute("sessionLoginS");
+            PlayerLoginS sessionLoginS = (PlayerLoginS) this.webContextHolder.getSession().getAttribute("loginS");
             if (sessionLoginS == null) {
                 throw new OpException(OpResult.RELOGIN, "登录已超时");
             }

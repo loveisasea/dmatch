@@ -15,14 +15,14 @@ import java.util.*;
 @Component
 public class GameEngine implements InitializingBean {
 
-    public Game genGame(GameType gameType, Match match) throws OpException {
+    public Game genGame(  Match match) throws OpException {
         if (match == null) {
             throw new OpException(OpResult.INVALID, "match为空");
         }
         if (match.team1 == null || match.team1.size() == 0 || match.team2 == null || match.team2.size() == 0) {
             throw new OpException(OpResult.INVALID, "一方玩家数量为空");
         }
-        if (gameType == null) {
+        if (match.gameType == null) {
             throw new OpException(OpResult.INVALID, "游戏类型为空");
         }
 
@@ -34,7 +34,7 @@ public class GameEngine implements InitializingBean {
 
         int playerCnt = match.team1.size();
         Game game = new Game();
-        game.type = gameType;
+        game.type = match.gameType;
         game.initbattleField = this.createBattleFied(game.type, playerCnt);
         game.gplayers = new ArrayList<>();
         game.steps = new ArrayList<>();
@@ -57,12 +57,14 @@ public class GameEngine implements InitializingBean {
                 Integer pid = iterR.next();
                 Gplayer gplayer = new Gplayer();
                 gplayer.pid = pid;
+                gplayer.status = GamePlayerStatus.准备中;
                 gplayer.restTime = 2 * 1000 * 60 * 60;
                 game.gplayers.add(gplayer);
 
                 pid = iterB.next();
                 gplayer = new Gplayer();
                 gplayer.pid = pid;
+                gplayer.status = GamePlayerStatus.准备中;
                 gplayer.restTime = 2 * 1000 * 60 * 60;
                 game.gplayers.add(gplayer);
             } else {
@@ -88,38 +90,42 @@ public class GameEngine implements InitializingBean {
         return game;
     }
 
-    public void goStep(Game game, GameStep step) throws OpException {
+    public GameStep goStep(Game game, Integer pid, int srtX, int srtY, int endX, int endY) throws OpException {
         if (game.winTeam != null) {
             throw new OpException(OpResult.FAIL, "游戏已结束");
         }
         //当前玩家
         int pseq = game.steps.size() % game.gplayers.size();
-        Integer currpid = game.gplayers.get(pseq).pid;
+        Gplayer currgplayer = game.gplayers.get(pseq);
 
-        if (!step.pid.equals(currpid)) {
-            throw new OpException(OpResult.FAIL, "不到玩家<" + step.pid + ">走");
+        if (!pid.equals(currgplayer.pid)) {
+            //如果不是掉线了而且还不是同一队
+            if ((!currgplayer.status.equals(GamePlayerStatus.已断开) && !currgplayer.status.equals(GamePlayerStatus.已断开))
+                    || (currgplayer.pid - pid) % 2 == 1) {
+                throw new OpException(OpResult.FAIL, "不到玩家<" + pid + ">走");
+            }
         }
 
-        if (step.srtX >= game.currbattleField.type.width || step.srtX < 0) {
-            throw new OpException(OpResult.FAIL, "起始横坐标<" + step.srtX + ">已超出棋盘宽度<" + game.currbattleField.type.width + ">");
+        if (srtX >= game.currbattleField.type.width || srtX < 0) {
+            throw new OpException(OpResult.FAIL, "起始横坐标<" + srtX + ">已超出棋盘宽度<" + game.currbattleField.type.width + ">");
         }
-        if (step.srtY >= game.currbattleField.type.height || step.srtY < 0) {
-            throw new OpException(OpResult.FAIL, "起始纵坐标<" + step.srtY + ">已超出棋盘高度<" + game.currbattleField.type.height + ">");
+        if (srtY >= game.currbattleField.type.height || srtY < 0) {
+            throw new OpException(OpResult.FAIL, "起始纵坐标<" + srtY + ">已超出棋盘高度<" + game.currbattleField.type.height + ">");
         }
-        if (step.endX >= game.currbattleField.type.width || step.endX < 0) {
-            throw new OpException(OpResult.FAIL, "结束横坐标<" + step.endX + ">已超出棋盘宽度<" + game.currbattleField.type.width + ">");
+        if (endX >= game.currbattleField.type.width || endX < 0) {
+            throw new OpException(OpResult.FAIL, "结束横坐标<" + endX + ">已超出棋盘宽度<" + game.currbattleField.type.width + ">");
         }
-        if (step.endY >= game.currbattleField.type.height || step.endY < 0) {
-            throw new OpException(OpResult.FAIL, "结束纵坐标<" + step.endY + ">已超出棋盘高度<" + game.currbattleField.type.height + ">");
+        if (endY >= game.currbattleField.type.height || endY < 0) {
+            throw new OpException(OpResult.FAIL, "结束纵坐标<" + endY + ">已超出棋盘高度<" + game.currbattleField.type.height + ">");
         }
-        Zeat selfzeat = game.currbattleField.pies[step.srtX][step.endY];
+        Zeat selfzeat = game.currbattleField.pies[srtX][endY];
         if (selfzeat == null) {
             throw new OpException(OpResult.FAIL, "该位置没有棋子可走");
         }
-        if (selfzeat.pid.equals(step.pid)) {
-            throw new OpException(OpResult.FAIL, "棋子并不属于玩家<" + step.pid + ">");
+        if (selfzeat.pid.equals(pid)) {
+            throw new OpException(OpResult.FAIL, "棋子并不属于玩家<" + pid + ">");
         }
-        Zeat targetzeat = game.currbattleField.pies[step.endX][step.endY];
+        Zeat targetzeat = game.currbattleField.pies[endX][endY];
         //TODO 走法校验
         if (targetzeat != null) {
             if (targetzeat.sid.teamType().equals(selfzeat.sid.teamType())) {
@@ -134,6 +140,12 @@ public class GameEngine implements InitializingBean {
         }
 
         //设置本步用时
+        GameStep step = new GameStep();
+        step.pid = pid;
+        step.srtX = srtX;
+        step.srtY = srtY;
+        step.endX = endX;
+        step.endY = endY;
         step.duration = DateUtil.getCurrent().getTime() - game.startDatetime.getTime();
         for (GameStep gameStep : game.steps) {
             step.duration = step.duration - gameStep.duration;
@@ -153,9 +165,9 @@ public class GameEngine implements InitializingBean {
         }
 
 
-
         step.seq = game.steps.size();
         game.steps.add(step);
+        return step;
     }
 
 

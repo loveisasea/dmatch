@@ -1,9 +1,8 @@
 package com.fym.game;
 
 import com.fym.core.err.OpException;
-import com.fym.game.enm.GameType;
 import com.fym.game.obj.Game;
-import com.fym.game.obj.GameStep;
+import com.fym.game.obj.Gplayer;
 import com.fym.match.obj.Match;
 
 /**
@@ -17,23 +16,43 @@ public interface GameService {
     /**
      * 创建游戏
      *
-     * @param gameType
      * @return
      */
-    Game createGame(GameType gameType, Match match) throws OpException;
+    Game createGame(  Match match) throws OpException;
 
 
     /**
      * 走棋
-     *
-     * @param step
      */
-    void goStep(GameStep step) throws OpException;
+    void goStep(int srtX, int srtY, int endX, int endY) throws OpException;
 
 
     /**
      * 退出游戏
      */
-    void quitGame();
+    Gplayer quitGame() throws OpException;
 
-} 
+
+    /**
+     * 准备游戏
+     *
+     * @return
+     */
+    Gplayer gameReady() throws OpException;
+
+    /**
+     * 断开连接
+     *
+     * @return
+     */
+    Gplayer disconnect() throws OpException;
+
+
+    /**
+     * 重连
+     *
+     * @return
+     */
+    Gplayer reconnect() throws OpException;
+
+}

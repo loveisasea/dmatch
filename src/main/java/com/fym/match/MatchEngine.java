@@ -2,6 +2,7 @@ package com.fym.match;
 
 import com.fym.core.err.OpException;
 import com.fym.core.err.OpResult;
+import com.fym.game.enm.GameType;
 import com.fym.match.obj.IUnit;
 import com.fym.match.obj.Match;
 import org.slf4j.Logger;
@@ -27,10 +28,10 @@ public class MatchEngine {
     public int bufferMatch;
 
     //单边玩家人数
-    public int pcnt;
+    public GameType gameType;
 
-    public MatchEngine(int pcnt, int maxScoreDiff, int bufferMatch) {
-        this.pcnt = pcnt;
+    public MatchEngine(GameType gameType, int maxScoreDiff, int bufferMatch) {
+        this.gameType = gameType;
         this.maxScoreDiff = maxScoreDiff;
         this.bufferMatch = bufferMatch;
         this.matchpool = new TreeMap<>();
@@ -51,11 +52,11 @@ public class MatchEngine {
         if (mUnit == null || mUnit.getSize() == 0) {
             throw new OpException(OpResult.FAIL, "匹配玩家或队伍不能为空");
         }
-        if (this.pcnt < mUnit.getSize()) {
+        if (this.gameType.pcnt < mUnit.getSize()) {
             throw new OpException(OpResult.FAIL, "队伍人数超过游戏类型人数限制");
         }
 
-        int restCnt = this.pcnt * 2 - mUnit.getSize() + this.bufferMatch; //需要挑出来匹配的玩家总数量
+        int restCnt = this.gameType.pcnt * 2 - mUnit.getSize() + this.bufferMatch; //需要挑出来匹配的玩家总数量
         List<IUnit> results = new ArrayList<>(); //初步挑出来匹配的玩家
 
 
@@ -108,7 +109,7 @@ public class MatchEngine {
                     }
                 }
             }
-            Match match = new Match();
+            Match match = new Match(this.gameType);
             List<IUnit> toReturn = results;
             //有足够的玩家进行二次挑选
             if (restCnt <= bufferMatch) {
@@ -140,7 +141,7 @@ public class MatchEngine {
                     //挑选team2
                     Iterator<IUnit> iter2 = results2.iterator();
                     lastTeam2 = null;
-                    while (match.team2size() < this.pcnt && iter2.hasNext()) {
+                    while (match.team2size() < this.gameType.pcnt && iter2.hasNext()) {
                         IUnit pickUnit = iter2.next();
                         if (pickUnit.getSize() == lastTeam1.getSize()) {
                             lastTeam2 = pickUnit;
@@ -156,9 +157,9 @@ public class MatchEngine {
                     //挑选team1
                     Iterator<IUnit> iter1 = results2.iterator();
                     lastTeam1 = null;
-                    while (match.team1size() < this.pcnt && iter1.hasNext()) {
+                    while (match.team1size() < this.gameType.pcnt && iter1.hasNext()) {
                         IUnit pickUnit = iter1.next();
-                        if (pickUnit.getSize() + match.team1size() <= this.pcnt) {
+                        if (pickUnit.getSize() + match.team1size() <= this.gameType.pcnt) {
                             lastTeam1 = pickUnit;
                             match.team1.add(lastTeam1);
                             iter1.remove();
@@ -170,7 +171,7 @@ public class MatchEngine {
                         break;
                     }
                 }
-                if (match.team1size() == this.pcnt && match.team2size() == this.pcnt) {
+                if (match.team1size() == this.gameType.pcnt && match.team2size() == this.gameType.pcnt) {
                     toReturn = results2;
                 } else {
                     toReturn.add(mUnit); //需要把当前玩家也加进去
@@ -195,7 +196,7 @@ public class MatchEngine {
                 return null;
             } else {
                 //平衡team1和team2的分数
-                Match matchret = new Match();
+                Match matchret = new Match(this.gameType);
                 for (int i = 0; i < match.team1.size(); i++) {
                     boolean team1higher = matchret.scoreDiff() > 0;
                     boolean team2higher = (match.team2.get(i).getScore() - match.team1.get(i).getScore()) > 0;

@@ -32,7 +32,7 @@ public class PlayerBox {
 
     public PlayerBox(Integer pid) {
         this.pid = pid;
-        this.status = PlayerStatus.正常;
+        this.status = PlayerStatus.空闲;
         this.msgs = new LinkedBlockingQueue<>();
     }
 

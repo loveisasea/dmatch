@@ -6,10 +6,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.stereotype.Component;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -33,11 +30,12 @@ public class PlayerBoxCom implements InitializingBean {
      * @return
      */
     public PlayerBox connect(Integer pid) {
-        PlayerBox playerBox = map_id_box.get(pid);
+        PlayerBox playerBox = this.map_id_box.get(pid);
         if (playerBox != null) {
             return playerBox;
         } else {
             playerBox = new PlayerBox(pid);
+            this.map_id_box.put(pid,playerBox);
         }
         return playerBox;
     }
@@ -88,6 +86,7 @@ public class PlayerBoxCom implements InitializingBean {
         PlayerBox playerBox = this.map_id_box.get(pid);
         if (playerBox == null) {
             LOGGER.error("无法发送消息，玩家<" + pid + ">处于离线退出状态");
+            return Collections.EMPTY_LIST;
         }
         List<IMsg> ret = new ArrayList<>();
         try {

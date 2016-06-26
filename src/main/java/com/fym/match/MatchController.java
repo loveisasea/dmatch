@@ -8,7 +8,8 @@ package com.fym.match;
 import com.fym.core.err.OpException;
 import com.fym.core.err.OpResult;
 import com.fym.core.util.StringUtil;
-import com.fym.match.cmd.JoinMatchCmd;
+import com.fym.match.cmd.*;
+import com.fym.match.obj.Team;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,62 @@ public class MatchController {
     private MatchService matchService;
 
 
+    /**
+     * 邀请入队
+     *
+     * @return 列表
+     * @throws OpException
+     */
+    @RequestMapping(value = "/team/invite", method = RequestMethod.POST)
+    @ResponseBody
+    public Object teamInvite(@RequestBody TeamInviteCmd req) throws OpException {
+
+        Team team = this.matchService.inviteTeam(req.matepid);
+        return new OpResult("已邀请<" + req.matepid + ">加入team", team);
+    }
+
+    /**
+     * 接受邀请
+     *
+     * @return 列表
+     * @throws OpException
+     */
+    @RequestMapping(value = "/team/accept", method = RequestMethod.POST)
+    @ResponseBody
+    public Object teamAccept(@RequestBody TeamAcceptCmd req) throws OpException {
+
+        Team team = this.matchService.acceptTeam(req.leaderpid);
+        return new OpResult("已接受<" + req.leaderpid + ">的邀请，加入team", team);
+    }
+
+    /**
+     * 拒绝邀请
+     *
+     * @return 列表
+     * @throws OpException
+     */
+    @RequestMapping(value = "/team/reject", method = RequestMethod.POST)
+    @ResponseBody
+    public Object teamReject(@RequestBody TeamRejectCmd req) throws OpException {
+
+        Team team = this.matchService.rejectTeam(req.leaderpid);
+        return new OpResult("已拒绝<" + req.leaderpid + ">的邀请", team);
+    }
+
+    /**
+     * 退出组队
+     *
+     * @return 列表
+     * @throws OpException
+     */
+    @RequestMapping(value = "/team/quit", method = RequestMethod.POST)
+    @ResponseBody
+    public Object teamQuit() throws OpException {
+
+        Team team = this.matchService.quitTeam();
+        return new OpResult("已退出队伍", team);
+    }
+
 
     /**
      * 获取列表
@@ -35,115 +92,55 @@ public class MatchController {
      * @return 列表
      * @throws OpException
      */
-    @RequestMapping(value = "/join", method = RequestMethod.POST)
+    @RequestMapping(value = "/start", method = RequestMethod.POST)
     @ResponseBody
-    public Object joinMatch(@RequestBody JoinMatchCmd req) throws OpException {
+    public Object startMatch(@RequestBody StartMatchCmd req) throws OpException {
 
         this.matchService.startMatch(req.gameTypeKeys);
-        return new OpResult("已加入匹配<" + StringUtil.compact( req.gameTypeKeys) + ">");
+        return new OpResult("已加入匹配<" + StringUtil.compact(req.gameTypeKeys) + ">");
     }
 
     /**
-     * 获取列表
+     * 接受匹配
+     *
+     * @return 列表
+     * @throws OpException
+     */
+    @RequestMapping(value = "/accept", method = RequestMethod.POST)
+    @ResponseBody
+    public Object accept(@RequestBody MatchAcceptCmd req) throws OpException {
+
+        this.matchService.acceptMatch(req.matchuuid);
+        return new OpResult("已接受匹配<" + req.matchuuid + ">");
+    }
+
+    /**
+     * 拒绝匹配
+     *
+     * @return 列表
+     * @throws OpException
+     */
+    @RequestMapping(value = "/reject", method = RequestMethod.POST)
+    @ResponseBody
+    public Object reject(@RequestBody MatchRejectCmd req) throws OpException {
+
+        this.matchService.rejectMatch(req.matchuuid);
+        return new OpResult("已拒绝匹配<" + req.matchuuid + ">");
+    }
+
+    /**
+     * 退出匹配
      *
      * @return 列表
      * @throws OpException
      */
     @RequestMapping(value = "/quit", method = RequestMethod.POST)
     @ResponseBody
-    public Object quitMatch() throws OpException {
+    public Object quitMatching() throws OpException {
 
         this.matchService.quitMatching();
         return new OpResult("已退出匹配");
     }
-
-//
-//    /**
-//     * 测试 - 个人匹配
-//     *
-//     * @return
-//     * @throws OpException
-//     */
-//    @RequestMapping(value = "/test/person/try", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object tryPersonMatch(@RequestBody TestTryPersonMatchCmd req) throws OpException {
-//        if (req.person == null) {
-//            throw new OpException(OpResult.FAIL, "参数<req.person>不能为空");
-//        }
-//        Person person = new Person(req.person.pid, req.person.score);
-//        if (req.gameTypeKey == null) {
-//            throw new OpException(OpResult.FAIL, "参数<req.gameTypeKey>不能为空");
-//        }
-//
-//        Match match = this.matchEngine.tryMatch(person, req.gameTypeKey);
-//        return new OpResult("已加入个人匹配", match);
-//    }
-//
-//    /**
-//     * 测试 - 团队匹配
-//     *
-//     * @return 列表
-//     * @throws OpException
-//     */
-//    @RequestMapping(value = "/test/group/try", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object tryGroupMatch(@RequestBody TestTryGroupMatchCmd req) throws OpException {
-//        if (req.group == null || req.group.persons == null) {
-//            throw new OpException(OpResult.FAIL, "参数<req.group>不能为空");
-//        }
-//        List<Person> persons = new ArrayList<>(req.group.persons.size());
-//        for (PersonCmd personcmd : req.group.persons) {
-//            persons.add(new Person(personcmd.pid, personcmd.score));
-//        }
-//        Group group = new Group(persons);
-//        if (req.gameTypeKey == null) {
-//            throw new OpException(OpResult.FAIL, "参数<req.gameTypeKey>不能为空");
-//        }
-//        Match match = this.matchEngine.tryMatch(group, req.gameTypeKey);
-//        return new OpResult("已加入团队匹配", match);
-//    }
-//
-//    /**
-//     * 获取匹配池状态
-//     *
-//     * @return 列表
-//     * @throws OpException
-//     */
-//    @RequestMapping(value = "/pool/get", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object getMatchPool(@RequestBody GetMatchPoolCmd req) throws OpException {
-//        Map<Integer, List<IUnit>> matchPool = this.matchEngine.getMatchPool(req.gameTypeKey);
-//        return new OpResult("已获取匹配池<" + req.gameTypeKey + ">", matchPool);
-//    }
-//
-//    /**
-//     * 获取所有匹配池
-//     *
-//     * @return 列表
-//     * @throws OpException
-//     */
-//    @RequestMapping(value = "/pool/getall", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object getAllMatchPool() throws OpException {
-//        Map<GameType, Map<Integer, List<IUnit>>> matchPools = this.matchService.get.getMatchPools();
-//        return new OpResult("已获取所有匹配池", matchPools);
-//    }
-//
-//    /**
-//     * 获取所有匹配池
-//     *
-//     * @return 列表
-//     * @throws OpException
-//     */
-//    @RequestMapping(value = "/pool/clean", method = RequestMethod.POST)
-//    @ResponseBody
-//    public Object cleanMatchPool(@RequestBody GetMatchPoolCmd req) throws OpException {
-//        this.matchEngine.cleanMatchPool(req.gameTypeKey);
-//        return new OpResult("已清除匹配池<" + req.gameTypeKey + ">");
-//    }
-//
-
-
 
 
 }

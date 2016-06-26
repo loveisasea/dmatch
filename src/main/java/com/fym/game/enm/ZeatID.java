@@ -5,13 +5,8 @@ package com.fym.game.enm;
  * 棋子
  */
 
+import com.fym.core.enm.Enm;
 import com.fym.core.enm.obj.IEnm;
-
-
-import java.lang.reflect.Field;
-import java.lang.reflect.Modifier;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ZeatID extends IEnm {
     public final static String TypeName = "棋子";
@@ -29,39 +24,13 @@ public class ZeatID extends IEnm {
     public final static ZeatID 黑士 = new ZeatID(12, "士");
     public final static ZeatID 黑象 = new ZeatID(13, "象");
     public final static ZeatID 黑卒 = new ZeatID(14, "卒");
-    private final static Map<Object, ZeatID> map = new HashMap<>();
 
     ZeatID(Integer key, String name) {
         super(key, name);
-    }
-
-    public static ZeatID get(Integer key) {
-        return map.get(key);
-    }
-
-    public static String getn(Integer key) {
-        ZeatID zeatid = get(key);
-        return zeatid == null ? IEnm.Unknown : zeatid.name;
+        Enm.add(this);
     }
 
     public TeamType teamType() {
         return ((Integer) this.key >= (Integer) ZeatID.黑将.key) ? TeamType.黑 : TeamType.红;
-    }
-
-
-    static {
-        Field[] fields = ZeatID.class.getDeclaredFields();
-        for (Field field : fields) {
-            int modifiers = field.getModifiers();
-            if (Modifier.isFinal(modifiers) && Modifier.isPublic(modifiers) && Modifier.isStatic(modifiers)
-                    && field.getType().equals(field.getDeclaringClass())) {
-                try {
-                    ZeatID zeatid = (ZeatID) field.get(null);
-                    map.put(zeatid.key, zeatid);
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
     }
 } 

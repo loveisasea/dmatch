@@ -1,5 +1,7 @@
 package com.fym.match.obj;
 
+import com.fym.game.enm.GameType;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -10,12 +12,13 @@ import java.util.Set;
  * Created by fengy on 2016/5/25.
  */
 public class Match {
-    public List<IUnit> team1;
-    public List<IUnit> team2;
+    public final GameType gameType;
+    public final List<IUnit> team1;
+    public final List<IUnit> team2;
+    public final Set<Integer> accepts;
 
-    public Set<Integer> accepts;
-
-    public Match() {
+    public Match(GameType gameType) {
+        this.gameType = gameType;
         this.team1 = new ArrayList<>();
         this.team2 = new ArrayList<>();
         this.accepts = new HashSet<>();

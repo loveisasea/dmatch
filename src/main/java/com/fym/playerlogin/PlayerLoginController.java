@@ -6,6 +6,7 @@ package com.fym.playerlogin;
 
 import com.fym.core.err.OpException;
 import com.fym.core.err.OpResult;
+import com.fym.playerbox.obj.IMsg;
 import com.fym.playerlogin.cmd.PlayerLoginPasswordCmd;
 import com.fym.playerlogin.obj.PlayerLoginS;
 import org.slf4j.Logger;
@@ -16,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.List;
 
 @Controller
 @RequestMapping(value = "player")
@@ -54,6 +57,20 @@ public class PlayerLoginController {
 
         this.playerLoginService.logout();
         return new OpResult("成功退出登录");
+    }
+
+    /**
+     * 详情
+     *
+     * @return 空
+     * @throws OpException
+     */
+    @RequestMapping(value = "/box/take", method = RequestMethod.POST)
+    @ResponseBody
+    public Object boxTake() throws OpException {
+
+        List<IMsg> msgs = this.playerLoginService.takeMsg();
+        return new OpResult("成功获取消息", msgs);
     }
 
 

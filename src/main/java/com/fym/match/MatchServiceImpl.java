@@ -4,8 +4,10 @@ package com.fym.match;
  * Created by fengy on 2016/5/24.
  */
 
+import com.fym.core.enm.Enm;
 import com.fym.core.err.OpException;
 import com.fym.core.err.OpResult;
+import com.fym.game.GameService;
 import com.fym.game.enm.GameType;
 import com.fym.match.msg.MsgMatchFound;
 import com.fym.match.msg.MsgTeamEvent;
@@ -53,6 +55,9 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
     @Autowired
     private PlayerService playerService;
 
+    @Autowired
+    private GameService gameService;
+
     @Override
     public Team inviteTeam(Integer matepid) throws OpException {
         Integer selfpid = this.playerLoginService.getLogin().pid;
@@ -97,6 +102,10 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
         IMsg msg = new IMsg((Integer) MsgID.组队候选人同意.key, new MsgTeamEvent(team.leaderpid, selfpid));
         this.playerBoxCom.putMsg(team.apids, msg);
         this.map_pid_team.put(selfpid, team);
+
+        //退出匹配
+        this.quitMatching(team.leaderpid);
+
         return team;
     }
 
@@ -173,7 +182,7 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
         if (gameTypeKeys != null) {
             gameTypes.clear();
             for (Integer gameTypeKey : gameTypeKeys) {
-                GameType gameType = GameType.get(gameTypeKey);
+                GameType gameType = Enm.kgete(GameType.class, gameTypeKey);
                 gameTypes.add(gameType);
             }
         }
@@ -217,6 +226,9 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
 
             //保存
             UUID matchid = UUID.randomUUID();
+            while (map_uuid_matches.containsKey(matchid)) {
+                matchid = UUID.randomUUID();
+            }
             map_uuid_matches.put(matchid, matchOK);
 
             //发送通知
@@ -248,7 +260,7 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
 
         if (match.accepts.size() == matchpids.size()) {
             this.map_uuid_matches.remove(matchuuid);
-            //TODO 启动游戏系统开始游戏
+            this.gameService.createGame( match);
         }
     }
 
@@ -273,13 +285,17 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
     @Override
     public void quitMatching() throws OpException {
         Integer selfpid = this.playerLoginService.getLogin().pid;
-        Team team = this.getTeam(selfpid);
+        this.quitMatching(selfpid);
+    }
+
+
+    private void quitMatching(Integer pid) throws OpException {
+        Team team = this.getTeam(pid);
         for (MatchStatusPool matchStatusPool : this.matchStatusPools.values()) {
             matchStatusPool.quitMatching(team);
         }
-        //发送退出通知
-        this.playerBoxCom.putMsg(team.apids, new IMsg((Integer) MsgID.玩家取消匹配.key, null));
-
+        //发送退出通
+        this.playerBoxCom.putMsg(team.apids, new IMsg((Integer) MsgID.玩家停止匹配.key, null));
 
     }
 
@@ -324,7 +340,7 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
 
         private MatchStatusPool(GameType gameType, int pcnt, int maxScoreDiff, int bufferMatch) {
             this.gameType = gameType;
-            this.matchEngine = new MatchEngine(pcnt, maxScoreDiff, bufferMatch);
+            this.matchEngine = new MatchEngine(gameType, maxScoreDiff, bufferMatch);
             this.map_team_group = new ConcurrentHashMap<>();
         }
 
@@ -338,11 +354,19 @@ public class MatchServiceImpl implements MatchService, InitializingBean {
             if (persons.size() > 1) {
                 Group group = new Group(persons);
                 this.map_team_group.put(team, group);
-                return this.matchEngine.tryMatch(group);
+                Match match = this.matchEngine.tryMatch(group);
+                if (match != null) {
+                    this.map_team_group.remove(team);
+                }
+                return match;
             } else if (persons.size() == 1) {
                 Person person = persons.get(0);
                 this.map_team_group.put(team, person);
-                return this.matchEngine.tryMatch(person);
+                Match match = this.matchEngine.tryMatch(person);
+                if (match != null) {
+                    this.map_team_group.remove(team);
+                }
+                return match;
             } else {
                 throw new OpException(OpResult.INVALID, "Team<" + team.leaderpid + ">没有任何玩家参赛");
             }

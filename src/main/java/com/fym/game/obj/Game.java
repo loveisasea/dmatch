@@ -1,9 +1,11 @@
 package com.fym.game.obj;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fym.game.enm.GameStatus;
 import com.fym.game.enm.GameType;
 import com.fym.game.enm.TeamType;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -22,6 +24,12 @@ public class Game {
      * 游戏类型
      */
     public GameType type;
+
+
+    /**
+     * 游戏状态
+     */
+    public GameStatus status;
 
 
     /**
@@ -61,6 +69,14 @@ public class Game {
      * 结束时间
      */
     public long duration;
+
+    public List<Integer> gpids() {
+        List<Integer> ret = new ArrayList<>(this.gplayers.size());
+        for (Gplayer gplayer : this.gplayers) {
+            ret.add(gplayer.pid);
+        }
+        return ret;
+    }
 
 
 }

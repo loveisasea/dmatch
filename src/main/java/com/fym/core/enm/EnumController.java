@@ -6,8 +6,8 @@ package com.fym.core.enm;
  */
 
 import com.fym.core.enm.cmd.EnumGetCmd;
-import com.fym.core.err.OpResult;
 import com.fym.core.err.OpException;
+import com.fym.core.err.OpResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -15,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
+
+import java.util.Map;
 
 @Controller
 @RequestMapping(value = "core/enum")
@@ -31,7 +33,7 @@ public class EnumController {
     @RequestMapping(value = "/get", method = RequestMethod.POST)
     @ResponseBody
     public Object getDatadicts(@RequestBody EnumGetCmd req) throws OpException {
-//        Map<Object, String> enums = EnumHelperEx.get(req.name);
+//        Map<Object, String> enums = Enm.getke(req.name);
         return new OpResult("已获取enums");
     }
 
@@ -44,9 +46,9 @@ public class EnumController {
     @RequestMapping(value = "/getall", method = RequestMethod.POST)
     @ResponseBody
     public Object getAllDatadicts() throws OpException {
-//        Map all = EnumHelperEx.getAll();
-//        return new OpResult("已获取enums", EnumHelperEx.getall());
-        return new OpResult("已获取enums");
+        Map all = Enm.getall();
+//        return new OpResult("已获取enums", Enm.getall());
+        return new OpResult("已获取enums", all);
     }
 
 }

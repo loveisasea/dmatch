@@ -1,7 +1,10 @@
 package com.fym.playerlogin;
 
 import com.fym.core.err.OpException;
+import com.fym.playerbox.obj.IMsg;
 import com.fym.playerlogin.obj.PlayerLoginS;
+
+import java.util.List;
 
 /**
  * Owned by Planck System
@@ -28,6 +31,8 @@ public interface PlayerLoginService {
      */
     void logout();
 
+
+    List<IMsg> takeMsg() throws OpException;
 
     /**
      * 获取当前用户登录
